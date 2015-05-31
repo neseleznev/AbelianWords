@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
+#include <set>
 #include <math.h>
 #include <string>
+#include <algorithm>
 
 #define STRONG 0
 #define SEMISTRONG 1
@@ -9,6 +11,7 @@
 
 #define BETA (11.0/3.0)
 const int MAX_ALPHABET = 15;
+std::set<std::string> trie = std::set<std::string>{"aaaa"};
 
 class ParichVector {
 public:
@@ -128,6 +131,27 @@ bool isAbelian(std::string w, std::string root)
 	return false;
 }
 
+
+bool has_no_forbidden_proper_suffixes(std::string w)
+{
+	double intpart;
+	// BETA is an integer
+	if (modf(BETA, &intpart) == 0.0)
+	{
+		std::reverse(w.begin(), w.end());
+		for (int pref_len = 1; pref_len < w.length(); ++pref_len)
+			if (trie.find(w.substr(0, pref_len)) != trie.end())
+				return false;
+		return true;
+	}
+	// BETA is fraction
+	for (int suff_len = 1; suff_len < w.length(); ++suff_len)
+		for (int root_len = 1; root_len < (w.length()-suff_len + 1) / (int)BETA; ++root_len)
+			if (isAbelian(w.substr(suff_len, w.length()-suff_len), w.substr(suff_len, root_len)))
+					return false;
+	return true;
+}
+
 void test_ParichVector()
 {
 	std::cout << "ParichVector tests:\ns = 'aba'\n";
@@ -149,9 +173,21 @@ void test_isAbelian()
 		<< (isAbelian("aabaabaababa", "aab") ? "Correct" : "failed!") << "\n"
 		<< (isAbelian("aabaabbaaaba", "aab") ? "Correct" : "failed!") << "\n";
 }
+void test_has_no_forbidden_suffixes()
+{
+#define BETA (11.0/3.0)
+	std::cout << (has_no_forbidden_proper_suffixes("ababababab") ? "failed" : "Correct") << "\n"
+
+		<< (has_no_forbidden_proper_suffixes("aaaa") ? "Correct" : "failed") << "\n"
+		<< (has_no_forbidden_proper_suffixes("bbbb") ? "Correct" : "failed") << "\n"
+
+		<< (has_no_forbidden_proper_suffixes("aaaaaaabbbabbbaab") ? "failed" : "Correct") << "\n"
+		<< (has_no_forbidden_proper_suffixes("aaabbbabbbaab") ? "failed" : "Correct") << "\n";
+}
 
 int main()
 {
+	test_has_no_forbidden_suffixes();
 	system("PAUSE");
 	return 0;
 }
